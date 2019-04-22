@@ -1,0 +1,8 @@
+#main_container{
+    display: flex;
+
+}
+#main_container > div{
+    display: flex;
+    flex-direction: column;
+}

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="description" content="WebGl hello World">
+        <meta name="keywords" content="HTML,CSS,XML,JavaScript">
+        <meta name="author" content="Miguel Sánchez">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="style.css">
+        <script id="2d-vertex-shader" type="notjs">
+
+              // an attribute will receive data from a buffer
+              attribute vec2 a_position;
+              uniform vec2 u_resolution;
+              uniform mat3 u_matrix;
+              varying vec4 v_color;
+
+              // all shaders have a main function
+              void main() {
+
+                vec2 clip_position = (u_matrix * vec3(a_position,1)).xy;
+                
+                clip_position = clip_position.xy / u_resolution ;
+
+                clip_position = clip_position*2.0 -1.0;
+
+                gl_Position = vec4(clip_position,0,1);
+
+
+                v_color = gl_Position * 0.5 + 0.5;
+
+              }
+ 
+        </script>
+ 
+        <script id="2d-fragment-shader" type="notjs">
+
+              // fragment shaders don't have a default precision so we need
+              // to pick one. mediump is a good default
+              precision mediump float;
+              uniform vec4 main_color;
+              varying vec4 v_color;
+
+              void main() {
+
+                gl_FragColor = v_color*3.0/4.0*v_color*3.0/4.0 + main_color/4.0*main_color/4.0; 
+              }
+
+        </script>
+    </head>
+    
+    <body>
+        <div id="main_container">
+            <canvas id="my_canvas" height="600" width ="600 "></canvas>
+            <div class ="slider_container">
+                <p>x_position</p>
+                <input id="x_pos" type="range" min="0" max="100" value="50" oninput="x_change_pos(this.value)">
+                <p>y_position</p>
+                <input id="y_pos" type="range" min="0" max="100" value="50" oninput="y_change_pos(this.value)">
+                <p>Rotation</p>
+                <input id="s_rotation" type="range" min="0" max="100" value="50" oninput="change_rotation(this.value)">
+                <p>x_scale</p>
+                <input id="x_scale" type="range" min="0" max="100" value="50" oninput="x_change_scale(this.value)">
+                <p>y_scale</p>
+                <input id="y_scale" type="range" min="0" max="100" value="50" oninput="y_change_scale(this.value)">
+            </div>
+        </div>
+        <script src="firstgl.js"></script>
+            
+    </body>
+</html>
