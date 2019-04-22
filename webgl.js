@@ -1,3 +1,4 @@
+//webgl.js
 var positions0 = [
     30,30,
     100,30,
@@ -210,3 +211,4 @@ var createProgram = function(gl,vertexShader, fragmentShader){
     gl.deleteProgram(program);
 }
 main();
+
