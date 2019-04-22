@@ -10,9 +10,9 @@
         <script id="2d-vertex-shader" type="notjs">
 
               // an attribute will receive data from a buffer
-              attribute vec2 a_position;
+              attribute vec3 a_position;
               uniform vec2 u_resolution;
-              uniform mat3 u_matrix;
+              uniform mat4 u_matrix;
               varying vec4 v_color;
 
               // all shaders have a main function
@@ -54,18 +54,18 @@
             <canvas id="my_canvas" height="600" width ="600 "></canvas>
             <div class ="slider_container">
                 <p>x_position</p>
-                <input id="x_pos" type="range" min="0" max="100" value="50" oninput="x_change_pos(this.value)">
+                <input id="x_pos" type="range" min="0" max="100" value="0" oninput="x_change_pos(this.value)">
                 <p>y_position</p>
-                <input id="y_pos" type="range" min="0" max="100" value="50" oninput="y_change_pos(this.value)">
+                <input id="y_pos" type="range" min="0" max="100" value="0" oninput="y_change_pos(this.value)">
                 <p>Rotation</p>
-                <input id="s_rotation" type="range" min="0" max="100" value="50" oninput="change_rotation(this.value)">
+                <input id="s_rotation" type="range" min="0" max="100" value="0" oninput="change_rotation(this.value)">
                 <p>x_scale</p>
-                <input id="x_scale" type="range" min="0" max="100" value="50" oninput="x_change_scale(this.value)">
+                <input id="x_scale" type="range" min="0" max="100" value="0" oninput="x_change_scale(this.value)">
                 <p>y_scale</p>
-                <input id="y_scale" type="range" min="0" max="100" value="50" oninput="y_change_scale(this.value)">
+                <input id="y_scale" type="range" min="0" max="100" value="0" oninput="y_change_scale(this.value)">
             </div>
         </div>
-        <script src="firstgl.js"></script>
+        <script src="webgl.js"></script>
             
     </body>
 </html>
