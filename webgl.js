@@ -2,8 +2,8 @@
 var vertex_array =[
     0,0,0, //0
     0,1000,0, //1
-    1000,100,0, //2
-    1000,0,0, //3
+    100,100,0, //2
+    100,0,0, //3
     1000,0,100, //4
     1000,1000,100, //5
     0,1000,100, //6
@@ -240,7 +240,7 @@ var main = function(){
         gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(), gl.STATIC_DRAW);
         //Tell the attribute how to get data out of the PositioBuffer
-        var size = 2;          // 2 components per iteration
+        var size = 3;          // 2 components per iteration
         var type = gl.FLOAT;   // the data is 32bit floats
         var normalize = false; // don't normalize the data
         var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
@@ -257,10 +257,10 @@ var main = function(){
         matrix = m4.yRotate(matrix, angles[1]); 
         matrix = m4.zRotate(matrix, angles[2]); 
         matrix = m4.scale(matrix, scale[0], scale[1], scale[2]); 
-        console.log(matrix);
+        //console.log(matrix);
         
 
-        for(var i=0;i<triangles_array.length;i+=3)
+        /*for(var i=0;i<triangles_array.length;i+=3)
         {
             
             var positions = [
@@ -277,8 +277,21 @@ var main = function(){
             gl.uniformMatrix4fv(matrixUniformLocation, false, matrix);
             
             gl.drawArrays(primitiveType, offset, count);
-        }
+        }*/
+        var positions0 = [vertex_array[0],vertex_array[1],vertex_array[2]
+                          ,vertex_array[6],vertex_array[7],vertex_array[8],
+                          vertex_array[9],vertex_array[10],vertex_array[11]];
+        console.log(positions0);
+        console.log(matrix);
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions0), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset);
         
+        gl.uniform2f(resolutionUniformLocation,gl.canvas.width,gl.canvas.height);
+        gl.uniform4f(colorUniformLocation,0.1,0.9,0.2,1);
+        gl.uniformMatrix4fv(matrixUniformLocation, false, matrix);
+        
+        gl.drawArrays(primitiveType, offset, count);
     }
     draw_scene();
 }
