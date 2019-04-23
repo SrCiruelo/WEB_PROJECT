@@ -1,15 +1,15 @@
 //webgl.js
-var vertex_array ={
+var vertex_array =[
     0,0,0, //0
-    0,100,0, //1
-    100,100,0, //2
-    100,0,0, //3
-    100,0,100, //4
-    100,100,100, //5
-    0,100,100, //6
+    0,1000,0, //1
+    1000,100,0, //2
+    1000,0,0, //3
+    1000,0,100, //4
+    1000,1000,100, //5
+    0,1000,100, //6
     0,0,100 //7
-}
-var triangles_array = {
+    ]
+var triangles_array = [
     0,1,6,
     0,7,6,
     0,1,2,
@@ -22,7 +22,7 @@ var triangles_array = {
     6,2,5,
     0,3,7,
     3,7,4
-}
+]
 
 var m4 = {
 
@@ -165,9 +165,7 @@ var m4 = {
 
 };
 
-var angle_x = 0;
-var angle_y = 0;
-var angle_z = 0;
+var angles = [0,0,0];
 var trans = [0,0,0];
 var scale = [1,1,1];
 
@@ -240,7 +238,7 @@ var main = function(){
         gl.enableVertexAttribArray(positionAttributeLocation);
         //Bind the buffer again after enabled a_poistion
         gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions0), gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(), gl.STATIC_DRAW);
         //Tell the attribute how to get data out of the PositioBuffer
         var size = 2;          // 2 components per iteration
         var type = gl.FLOAT;   // the data is 32bit floats
@@ -253,19 +251,26 @@ var main = function(){
         var count = 3;
         
         var matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
-        matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
-        matrix = m4.xRotate(matrix, rotation[0]);
-        matrix = m4.yRotate(matrix, rotation[1]);
-        matrix = m4.zRotate(matrix, rotation[2]);
-        matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
+        //var matrix = m4.scaling( scale[0], scale[1], scale[2]); 
+        matrix = m4.translate(matrix, trans[0], trans[1], trans[2]);
+        matrix = m4.xRotate(matrix, angles[0]);
+        matrix = m4.yRotate(matrix, angles[1]); 
+        matrix = m4.zRotate(matrix, angles[2]); 
+        matrix = m4.scale(matrix, scale[0], scale[1], scale[2]); 
+        console.log(matrix);
         
-        for(var i=0;i<triangles_array.length;i+3)
+
+        for(var i=0;i<triangles_array.length;i+=3)
         {
             
-            var positions = {vertex_array[triangles_array[i]],vertex_array[triangles_array[i+1]],vertex_array[triangles_array[i+2]]};
+            var positions = [
+                vertex_array[triangles_array[i]],vertex_array[triangles_array[i]+1],vertex_array[triangles_array[i]+2],
+                vertex_array[triangles_array[i+1]],vertex_array[triangles_array[i+1]+1],vertex_array[triangles_array[i+1]+2],
+                vertex_array[triangles_array[i+2]],vertex_array[triangles_array[i+2]+1],vertex_array[triangles_array[i+2]+2]
+            ];
             gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-            gl.vertexAttribPointer(positionLocation, size, type, normalize, stride, offset);
+            gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset);
             
             gl.uniform2f(resolutionUniformLocation,gl.canvas.width,gl.canvas.height);
             gl.uniform4f(colorUniformLocation,0.1,0.9,0.2,1);
@@ -275,8 +280,7 @@ var main = function(){
         }
         
     }
-        draw_scene();
-    //draw_scene();
+    draw_scene();
 }
 
 var createShader = function(gl, type, source){
