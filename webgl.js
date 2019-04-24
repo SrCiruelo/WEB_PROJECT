@@ -1,28 +1,29 @@
 //webgl.js
 var vertex_array =[
     0,0,0, //0
-    0,1000,0, //1
-    100,100,0, //2
-    100,0,0, //3
-    1000,0,100, //4
-    1000,1000,100, //5
-    0,1000,100, //6
-    0,0,100 //7
+    0,0,100, //1
+    0,100,0, //2
+    0,100,100, //3
+    100,0,0, //4
+    100,0,100, //5
+    100,100,0, //6
+    100,100,100 //7
     ]
 var triangles_array = [
-    0,1,6,
-    0,7,6,
-    0,1,2,
-    0,2,3,
-    3,5,4,
-    3,2,5,
-    7,6,5,
-    7,5,4,
-    1,6,2,
-    6,2,5,
-    0,3,7,
-    3,7,4
+    0,4,2,
+    2,4,6,
+    0,2,1,
+    1,2,3,
+    4,5,6,
+    6,5,7,
+    1,3,5,
+    3,7,5,
+    0,1,4,
+    1,5,4,
+    3,2,6,
+    3,6,7
 ]
+var fudge_factor = 1;
 
 var m4 = {
 
@@ -31,7 +32,7 @@ var m4 = {
     return [
        2 / width, 0, 0, 0,
        0, -2 / height, 0, 0,
-       0, 0, 2 / depth, 0,
+	0, 0, 2 / depth, 2/depth*fudge_factor,
       -1, 1, 0, 1,
     ];
   },
@@ -169,8 +170,16 @@ var angles = [0,0,0];
 var trans = [0,0,0];
 var scale = [1,1,1];
 
-var change_rotation = function(x){
-    angle = x/50 * Math.PI;
+var change_rotation_x = function(x){
+    angles[0] = x/50 * Math.PI;
+    draw_scene();
+}
+var change_rotation_y = function(x){
+    angles[1] = x/50 * Math.PI;
+    draw_scene();
+}
+var change_rotation_z = function(x){
+    angles[2] = x/50 * Math.PI;
     draw_scene();
 }
 var x_change_pos = function(x){
@@ -181,12 +190,24 @@ var y_change_pos = function(y){
     trans[1] = y/100 * canvas0.height;
     draw_scene();
 }
+var z_change_pos = function(y){
+    trans[2] = y;
+    draw_scene();
+}
 var x_change_scale = function(x){
     scale[0] = x/20;
     draw_scene();
 }
 var y_change_scale = function(y){
     scale[1] = y/20;
+    draw_scene();
+}
+var z_change_scale = function(y){
+    scale[2] = y/20;
+    draw_scene();
+}
+var change_fudge = function(y){
+    fudge_factor = y/50;
     draw_scene();
 }
 
@@ -227,7 +248,15 @@ var main = function(){
     //We need set to the Display size our size in the html
     //webgl-utils.resizeCanvasToDisplaySize(gl.canvas);
     //This tells WebGl the -1 to +1 clip space maps to 0 gl.canvas.width and height
+
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.FRONT);
+    
     draw_scene = function(){
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+	gl.enable(gl.DEPTH_TEST);
+	
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
         // Clear the canvas
         gl.clearColor(0, 0, 0, 0);
@@ -240,7 +269,7 @@ var main = function(){
         gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(), gl.STATIC_DRAW);
         //Tell the attribute how to get data out of the PositioBuffer
-        var size = 3;          // 2 components per iteration
+        var size = 3;          // 3 components per iteration
         var type = gl.FLOAT;   // the data is 32bit floats
         var normalize = false; // don't normalize the data
         var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
@@ -257,41 +286,30 @@ var main = function(){
         matrix = m4.yRotate(matrix, angles[1]); 
         matrix = m4.zRotate(matrix, angles[2]); 
         matrix = m4.scale(matrix, scale[0], scale[1], scale[2]); 
-        //console.log(matrix);
-        
 
-        /*for(var i=0;i<triangles_array.length;i+=3)
+	var x = 0;
+        for(var i=0;i<triangles_array.length;i+=3,x+=8/120)
         {
             
             var positions = [
-                vertex_array[triangles_array[i]],vertex_array[triangles_array[i]+1],vertex_array[triangles_array[i]+2],
-                vertex_array[triangles_array[i+1]],vertex_array[triangles_array[i+1]+1],vertex_array[triangles_array[i+1]+2],
-                vertex_array[triangles_array[i+2]],vertex_array[triangles_array[i+2]+1],vertex_array[triangles_array[i+2]+2]
+                vertex_array[triangles_array[i]*3], vertex_array[triangles_array[i]*3+1], vertex_array[triangles_array[i]*3+2],
+                vertex_array[triangles_array[i+1]*3], vertex_array[triangles_array[i+1]*3+1], vertex_array[triangles_array[i+1]*3+2],
+                vertex_array[triangles_array[i+2]*3], vertex_array[triangles_array[i+2]*3+1], vertex_array[triangles_array[i+2]*3+2]
             ];
+
+
+	    
             gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
             gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset);
             
             gl.uniform2f(resolutionUniformLocation,gl.canvas.width,gl.canvas.height);
-            gl.uniform4f(colorUniformLocation,0.1,0.9,0.2,1);
+            gl.uniform4f(colorUniformLocation,x,x,x,1);
             gl.uniformMatrix4fv(matrixUniformLocation, false, matrix);
             
             gl.drawArrays(primitiveType, offset, count);
-        }*/
-        var positions0 = [vertex_array[0],vertex_array[1],vertex_array[2]
-                          ,vertex_array[6],vertex_array[7],vertex_array[8],
-                          vertex_array[9],vertex_array[10],vertex_array[11]];
-        console.log(positions0);
-        console.log(matrix);
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions0), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset);
-        
-        gl.uniform2f(resolutionUniformLocation,gl.canvas.width,gl.canvas.height);
-        gl.uniform4f(colorUniformLocation,0.1,0.9,0.2,1);
-        gl.uniformMatrix4fv(matrixUniformLocation, false, matrix);
-        
-        gl.drawArrays(primitiveType, offset, count);
+        }
+	console.log(matrix);
     }
     draw_scene();
 }
