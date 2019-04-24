@@ -1,15 +1,14 @@
-//MainCSSfile
 
 
 #container{
     display: flex;
     flex-direction: row;
-    background-color: yellow;
+    
 }
 
 #slider {
     display: flex;
     flex-direction: column;
-   
+    width: 100%;
 }
 
