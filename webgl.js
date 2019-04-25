@@ -229,7 +229,12 @@ var m4 = {
             (tmp_20 * m12 + tmp_23 * m22 + tmp_17 * m02))
     ];
   },
-
+  multiply_vector: function(a,b){
+      return [a[0]*b[0]+a[1]*b[1]+a[2]*b[2]+a[3]*b[3],
+	      a[4]*b[0]+a[5]*b[1]+a[6]*b[2]+a[7]*b[3],
+	      a[8]*b[0]+a[9]*b[1]+a[10]*b[2]+a[11]*b[3],
+     	     a[12]*b[0]+a[13]*b[1]+a[14]*b[2]+a[15]*b[3]]
+  },
   translate: function(m, tx, ty, tz) {
     return m4.multiply(m, m4.translation(tx, ty, tz));
   },
@@ -378,13 +383,13 @@ var main = function(){
 	var zFar = 2000;
 	var projection_matrix = m4.perspective(deg_to_rad(field_of_view), aspect, zNear, zFar);
 	var cameraMatrix = m4.yRotation(rad_cam_angle);
-	cameraMatrix = m4.translate(cameraMatrix, trans[0], trans[1], trans[2]);
+	cameraMatrix = m4.translate(cameraMatrix, 0, 0, 0);
 	
 	var viewMatrix = m4.inverse(cameraMatrix);
 
 	var matrix = m4.multiply(projection_matrix, viewMatrix);
-	
-	console.log(matrix);
+	var vector0 = [100,100,100,1];
+	console.log(m4.multiply_vector(matrix,vector0));
 	var x = 0;
         for(var i=0;i<triangles_array.length;i+=3,x+=8/120)
         {
@@ -395,7 +400,7 @@ var main = function(){
                 vertex_array[triangles_array[i+2]*3], vertex_array[triangles_array[i+2]*3+1], vertex_array[triangles_array[i+2]*3+2]
             ];
 
-
+	    
 	    
             gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
