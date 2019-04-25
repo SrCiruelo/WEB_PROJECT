@@ -12,3 +12,7 @@
     width: 100%;
 }
 
+#slider > input{
+
+	width: 90%;
+}

@@ -48,13 +48,13 @@
     
     <body>
         <div id="container">
-            <canvas id="my_canvas" height="600" width ="600 "></canvas>
+            <canvas id="my_canvas" height="600" width ="1200 "></canvas>
             <div class ="slider_container" id="slider">
-                <p>x_position</p>
+                <p>X_position</p>
                 <input id="x_pos" type="range" min="0" max="100" value="0" oninput="x_change_pos(this.value)">
-                <p>y_position</p>
+                <p>Y_position</p>
                 <input id="y_pos" type="range" min="0" max="100" value="0" oninput="y_change_pos(this.value)">
-		<p>z_position</p>
+		<p>Z_position</p>
 		<input id="z_pos" type="range" min="0" max="100" value="0" oninput="z_change_pos(this.value)">
                 <p>Rotation_X</p>
                 <input id="x_rotation" type="range" min="0" max="100" value="0" oninput="change_rotation_x(this.value)">
@@ -63,12 +63,14 @@
 		<p>Rotation_Z</p>
                 <input id="z_rotation" type="range" min="0" max="100" value="0" oninput="change_rotation_z(this.value)">
 		
-                <p>x_scale</p>
+                <p>X_scale</p>
                 <input id="x_scale" type="range" min="0" max="100" value="0" oninput="x_change_scale(this.value)">
-                <p>y_scale</p>
+                <p>Y_scale</p>
                 <input id="y_scale" type="range" min="0" max="100" value="0" oninput="y_change_scale(this.value)">
-		<p>fudge_factor</p>
-                <input id="fudge_factor" type="range" min="0" max="100" value="0" oninput="change_fudge(this.value)">
+		<p>Z_scale</p>
+                <input id="z_scale" type="range" min="0" max="100" value="0" oninput="z_change_scale(this.value)"
+		<p>Field of view</p>
+                <input id="fudge_factor" type="range" min="0" max="100" value="0" oninput="change_field(this.value)">
             </div>
         </div>
         <script src="webgl.js"></script>

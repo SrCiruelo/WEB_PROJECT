@@ -23,17 +23,19 @@ var triangles_array = [
     3,2,6,
     3,6,7
 ]
-var fudge_factor = 1;
+var field_of_view = 60;
 
 var m4 = {
 
-  projection: function(width, height, depth) {
-    // Note: This matrix flips the Y axis so 0 is at the top.
+ perspective: function(fieldOfViewInRadians, aspect, near, far) {
+    var f = Math.tan(Math.PI * 0.5 - 0.5 * fieldOfViewInRadians);
+    var rangeInv = 1.0 / (near - far);
+ 
     return [
-       2 / width, 0, 0, 0,
-       0, -2 / height, 0, 0,
-	0, 0, 2 / depth, 2/depth*fudge_factor,
-      -1, 1, 0, 1,
+      f / aspect, 0, 0, 0,
+      0, f, 0, 0,
+      0, 0, (near + far) * rangeInv, -1,
+      0, 0, near * far * rangeInv * 2, 0
     ];
   },
 
@@ -167,7 +169,7 @@ var m4 = {
 };
 
 var angles = [0,0,0];
-var trans = [0,0,0];
+var trans = [-150,0,-360];
 var scale = [1,1,1];
 
 var change_rotation_x = function(x){
@@ -183,15 +185,15 @@ var change_rotation_z = function(x){
     draw_scene();
 }
 var x_change_pos = function(x){
-    trans[0] = x/100 * canvas0.width;
+    trans[0] = x*2 -150;
     draw_scene();
 }
 var y_change_pos = function(y){
-    trans[1] = y/100 * canvas0.height;
+    trans[1] = -y*2;
     draw_scene();
 }
 var z_change_pos = function(y){
-    trans[2] = y;
+    trans[2] = -y-360;
     draw_scene();
 }
 var x_change_scale = function(x){
@@ -206,9 +208,12 @@ var z_change_scale = function(y){
     scale[2] = y/20;
     draw_scene();
 }
-var change_fudge = function(y){
-    fudge_factor = y/50;
+var change_field = function(y){
+    field_of_view = y*180/100;
     draw_scene();
+}
+var deg_to_rad = function(val){
+    return val * Math.PI/180;
 }
 
 var draw_scene;
@@ -279,8 +284,10 @@ var main = function(){
         var offset = 0;
         var count = 3;
         
-        var matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
-        //var matrix = m4.scaling( scale[0], scale[1], scale[2]); 
+        var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+	var zNear = 1;
+	var zFar = 2000;
+	var matrix = m4.perspective(deg_to_rad(field_of_view), aspect, zNear, zFar);
         matrix = m4.translate(matrix, trans[0], trans[1], trans[2]);
         matrix = m4.xRotate(matrix, angles[0]);
         matrix = m4.yRotate(matrix, angles[1]); 
@@ -309,7 +316,7 @@ var main = function(){
             
             gl.drawArrays(primitiveType, offset, count);
         }
-	console.log(matrix);
+	
     }
     draw_scene();
 }
