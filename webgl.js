@@ -388,7 +388,10 @@ var main = function(){
 	var viewMatrix = m4.inverse(cameraMatrix);
 
 	var matrix = m4.multiply(projection_matrix, viewMatrix);
-	var vector0 = [100,100,100,1];
+
+	var vector0 = [100,0,0,1];
+	
+	matrix = m4.translate(matrix,trans[0],trans[1],trans[2]);
 	console.log(m4.multiply_vector(matrix,vector0));
 	var x = 0;
         for(var i=0;i<triangles_array.length;i+=3,x+=8/120)
