@@ -70,9 +70,7 @@
 		<p>Z_scale</p>
                 <input id="z_scale" type="range" min="0" max="100" value="0" oninput="z_change_scale(this.value)"
 		<p>Field of view</p>
-                <input id="field_of_view" type="range" min="0" max="100" value="0" oninput="change_field(this.value)">
-		<p>Camera Angle</p>
-                <input id="Camera Angle" type="range" min="0" max="360" value="0" oninput="change_camera_angle(this.value)">
+                <input id="fudge_factor" type="range" min="0" max="100" value="0" oninput="change_field(this.value)">
             </div>
         </div>
         <script src="webgl.js"></script>
