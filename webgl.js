@@ -23,6 +23,18 @@ var triangles_array = [
     3,2,6,
     3,6,7
 ]
+var interface_points = [
+    20,10,100,
+    20,80,100,
+    80,20,100,
+    80,80,100
+]
+var interface_text = [
+    "Who am I?",
+    "CV",
+    "PortFolio",
+    "Contact Me"
+]
 var field_of_view = 60;
 
 var m4 = {
@@ -230,10 +242,11 @@ var m4 = {
     ];
   },
   multiply_vector: function(a,b){
-      return [a[0]*b[0]+a[1]*b[1]+a[2]*b[2]+a[3]*b[3],
-	      a[4]*b[0]+a[5]*b[1]+a[6]*b[2]+a[7]*b[3],
-	      a[8]*b[0]+a[9]*b[1]+a[10]*b[2]+a[11]*b[3],
-     	     a[12]*b[0]+a[13]*b[1]+a[14]*b[2]+a[15]*b[3]]
+      return [a[0]*b[0]+a[4]*b[1]+a[8]*b[2]+a[12]*b[3],
+             a[1]*b[0]+a[5]*b[1]+a[9]*b[2]+a[13]*b[3],
+             a[2]*b[0]+a[6]*b[1]+a[10]*b[2]+a[14]*b[3],
+             a[3]*b[0]+a[7]*b[1]+a[11]*b[2]+a[15]*b[3]
+             ]
   },
   translate: function(m, tx, ty, tz) {
     return m4.multiply(m, m4.translation(tx, ty, tz));
@@ -312,12 +325,22 @@ var change_camera_angle = function(x){
 
 var draw_scene;
 var canvas0;
+var ctx_2d;
+
+
 var main = function(){
 
     //Get Canvas
-    canvas0 = document.getElementById("my_canvas");
+    canvas0 = document.getElementById("gl_canvas");
+
+    var canvas1 = document.getElementById("D_canvas");
+    canvas1.addEventListener("mousedown", click_on_canvas);
+    document.addEventListener("mouseup",release_click);
+    canvas1.addEventListener("mousemove",mouse_over_canvas);
+    ctx_2d = canvas1.getContext("2d");
+    
     //get webgl
-    var gl = canvas0.getContext("webgl") || canvas.getContext("experimental-webgl"); 
+    var gl = canvas0.getContext("webgl") || canvas0.getContext("experimental-webgl"); 
     if(!gl){
         alert("Your browser or device is not compatible with webl");
     }
@@ -352,9 +375,9 @@ var main = function(){
     gl.cullFace(gl.FRONT);
     
     draw_scene = function(){
-	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-	gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.DEPTH_TEST);
 	
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
         // Clear the canvas
@@ -379,45 +402,157 @@ var main = function(){
         var count = 3;
         
         var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-	var zNear = 1;
-	var zFar = 2000;
-	var projection_matrix = m4.perspective(deg_to_rad(field_of_view), aspect, zNear, zFar);
-	var cameraMatrix = m4.yRotation(rad_cam_angle);
-	cameraMatrix = m4.translate(cameraMatrix, 0, 0, 0);
-	
-	var viewMatrix = m4.inverse(cameraMatrix);
+        var zNear = 1;
+        var zFar = 2000;
+        var projection_matrix = m4.perspective(deg_to_rad(field_of_view), aspect, zNear, zFar);
+        var cameraMatrix = m4.xRotation(0);
+        cameraMatrix = m4.xRotate(cameraMatrix,0.93);
+        cameraMatrix = m4.translate(cameraMatrix, -90,-200,-0);
 
-	var matrix = m4.multiply(projection_matrix, viewMatrix);
+        var viewMatrix = m4.inverse(cameraMatrix);
 
-	var vector0 = [100,0,0,1];
-	
-	matrix = m4.translate(matrix,trans[0],trans[1],trans[2]);
-	console.log(m4.multiply_vector(matrix,vector0));
-	var x = 0;
+        var matrix = m4.multiply(projection_matrix, viewMatrix); //viewProjectionMatrix
+
+        var vector0 = [100,100,100,1];
+        
+        var pivot = [-100,50,-0];
+        var worldmatrix = m4.translation(pivot[0],pivot[1],pivot[2]);
+        worldmatrix = m4.zRotate(worldmatrix,angles[2]);
+        worldmatrix = m4.translate(worldmatrix,-pivot[0],-pivot[1],-pivot[2]);
+        worldmatrix = m4.translate(worldmatrix,trans[0],trans[1],trans[2]);
+        
+        matrix = m4.multiply(matrix,worldmatrix);
+        
+        var x = 0;
         for(var i=0;i<triangles_array.length;i+=3,x+=8/120)
         {
-            
+
             var positions = [
                 vertex_array[triangles_array[i]*3], vertex_array[triangles_array[i]*3+1], vertex_array[triangles_array[i]*3+2],
                 vertex_array[triangles_array[i+1]*3], vertex_array[triangles_array[i+1]*3+1], vertex_array[triangles_array[i+1]*3+2],
                 vertex_array[triangles_array[i+2]*3], vertex_array[triangles_array[i+2]*3+1], vertex_array[triangles_array[i+2]*3+2]
             ];
 
-	    
-	    
+
+
             gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
             gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset);
-            
+
             gl.uniform2f(resolutionUniformLocation,gl.canvas.width,gl.canvas.height);
             gl.uniform4f(colorUniformLocation,x,x,x,1);
             gl.uniformMatrix4fv(matrixUniformLocation, false, matrix);
-            
+
             gl.drawArrays(primitiveType, offset, count);
         }
-	
+        //get the coordinates of the interface points
+        var clip_coords= [];
+        var z_coords = [];
+        var z_index = [];
+        var tmp_coords = [];
+        for(var i= 0;i<interface_points.length/3;++i){
+            //console.log(interface_points[i*3]+" "+interface_points[i*3+1]+" "+interface_points[i*3+2]);
+            var tmp = [interface_points[i*3],interface_points[i*3+1],interface_points[i*3+2],1];
+            tmp = m4.multiply_vector(matrix,tmp);
+            var j=0;
+            for(; j< i && tmp[2]<z_coords[j];++j){
+            }
+            z_coords.splice(j,0,tmp[3]);
+            z_index.splice(j,0,i);
+            tmp_coords[i*2] = tmp[0]/tmp[3];
+            tmp_coords[i*2+1] = tmp[1]/tmp[3];
+        }
+        console.log(z_index);
+        for(var i=0;i<z_index.length;++i){
+            clip_coords[i*2+0] = tmp_coords[z_index[i]*2+0];
+            clip_coords[i*2+1] = tmp_coords[z_index[i]*2+1];
+            
+        }
+        draw_interface(clip_coords,z_index);
     }
     draw_scene();
+}
+
+var line_magnitude=400;
+var box_height = 35;
+var box_width = 400;
+var outer_pointer_size = 15;
+var inner_pointer_size = 7;
+
+
+var draw_interface = function(points_coords,z_index){
+    ctx_2d.clearRect(0, 0, 1920,1080);
+    ctx_2d.fillStyle = "#FFFFFF";
+    var direction = [0.707,0.707];
+    //ctx.font = "30px Arial";
+    for(var i=0;i<points_coords.length/2;++i){
+        //ctx_2d.fillRect((points_coords[i*2]+1)/2*canvas0.width,(1 - points_coords[i*2+1])/2*canvas0.height,50,50);
+        ctx_2d.fillStyle = "#FFFFFF";
+        ctx_2d.beginPath(); 
+        ctx_2d.lineWidth = "3";
+        ctx_2d.strokeStyle = "black"; // Green path
+        var clippped_coords = [(points_coords[i*2]+1)/2*canvas0.width,(1 - points_coords[i*2+1])/2*canvas0.height];
+        ctx_2d.moveTo( clippped_coords[0], clippped_coords[1]);
+        ctx_2d.lineTo(clippped_coords[0]+direction[0]*line_magnitude, clippped_coords[1]-direction[1]*0.866*line_magnitude);
+        ctx_2d.lineTo(clippped_coords[0]+direction[0]*line_magnitude + box_width, clippped_coords[1]-direction[1]*0.866*line_magnitude);
+        ctx_2d.lineTo(clippped_coords[0]+direction[0]*line_magnitude + box_width - direction[0]*box_height, clippped_coords[1]-direction[1]*0.866*line_magnitude + direction[1]*box_height);
+        ctx_2d.lineTo(clippped_coords[0]+direction[0]*line_magnitude - direction[0]*box_height - 4, clippped_coords[1]-direction[1]*0.866*line_magnitude + direction[1]*box_height);
+        ctx_2d.stroke(); // Draw it
+        ctx_2d.fill();
+        
+        ctx_2d.beginPath();
+        ctx_2d.moveTo( clippped_coords[0] + outer_pointer_size, clippped_coords[1]);
+        ctx_2d.lineTo(clippped_coords[0],clippped_coords[1] - outer_pointer_size );
+        ctx_2d.lineTo( clippped_coords[0] - outer_pointer_size, clippped_coords[1]);
+        ctx_2d.lineTo(clippped_coords[0],clippped_coords[1] + outer_pointer_size );
+        ctx_2d.lineTo( clippped_coords[0] + outer_pointer_size + outer_pointer_size/10, clippped_coords[1] -outer_pointer_size/10);
+        
+        ctx_2d.lineWidth = "0";
+        ctx_2d.stroke();
+        ctx_2d.fill();
+        
+        ctx_2d.fillStyle = "#000000";
+        
+        ctx_2d.beginPath();
+        ctx_2d.moveTo( clippped_coords[0] + inner_pointer_size, clippped_coords[1]);
+        ctx_2d.lineTo(clippped_coords[0],clippped_coords[1] -  inner_pointer_size );
+        ctx_2d.lineTo( clippped_coords[0] -  inner_pointer_size, clippped_coords[1]);
+        ctx_2d.lineTo(clippped_coords[0],clippped_coords[1] +  inner_pointer_size );
+        ctx_2d.lineTo( clippped_coords[0] +  inner_pointer_size+ inner_pointer_size/10 , clippped_coords[1] -inner_pointer_size/10);
+        ctx_2d.lineWidth = "0";
+        ctx_2d.stroke();
+        ctx_2d.fill();
+        //ctx_2d.fill();
+        
+
+        ctx_2d.font = "small-caps 33px Consolas";
+        var text_point = [clippped_coords[0]+direction[0]*line_magnitude - direction[0]*box_height + 25, clippped_coords[1]-direction[1]*0.866*line_magnitude + direction[1]*box_height]
+        ctx_2d.fillText(interface_text[z_index[i]], text_point[0], text_point[1]);
+    }
+}
+
+var clicking = false;
+var initial_click = [];
+var angle_magnitude = 0;
+var initial_angle = 0;
+var mouse_over_canvas = function(e){
+    if(!clicking)return;
+    var magnitude = initial_click[0] - e.clientX;
+    angle_magnitude = magnitude/canvas0.width * Math.PI * 2;
+    angles[2] = initial_angle + angle_magnitude;
+    draw_scene();
+}
+var click_on_canvas = function(e){
+    clicking = true;
+    initial_angle = angles[2];
+    initial_click[0] = e.clientX;
+    initial_click[1] = e.clientY;
+    console.log("clicked");
+    
+}
+var release_click = function(e){
+     clicking=false;
+    console.log("release");
 }
 
 var createShader = function(gl, type, source){

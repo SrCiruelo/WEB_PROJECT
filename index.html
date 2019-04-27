@@ -17,11 +17,10 @@
 
               // all shaders have a main function
               void main() {
-	        vec4 position = (u_matrix * a_position);
+	           vec4 position = (u_matrix * a_position);
 	      
-                float z_to_d = 1.0 + position.z*0.2;
-
-                gl_Position = vec4(position.xyzw);
+          
+                gl_Position = position;
 
 
                 v_color = gl_Position * 0.5 + 0.5;
@@ -46,34 +45,10 @@
         </script>
     </head>
     
-    <body>
+    <body onresize="draw_scene()">
         <div id="container">
-            <canvas id="my_canvas" height="600" width ="1200 "></canvas>
-            <div class ="slider_container" id="slider">
-                <p>X_position</p>
-                <input id="x_pos" type="range" min="0" max="100" value="0" oninput="x_change_pos(this.value)">
-                <p>Y_position</p>
-                <input id="y_pos" type="range" min="0" max="100" value="0" oninput="y_change_pos(this.value)">
-		<p>Z_position</p>
-		<input id="z_pos" type="range" min="0" max="100" value="0" oninput="z_change_pos(this.value)">
-                <p>Rotation_X</p>
-                <input id="x_rotation" type="range" min="0" max="100" value="0" oninput="change_rotation_x(this.value)">
-		<p>Rotation_Y</p>
-                <input id="y_rotation" type="range" min="0" max="100" value="0" oninput="change_rotation_y(this.value)">
-		<p>Rotation_Z</p>
-                <input id="z_rotation" type="range" min="0" max="100" value="0" oninput="change_rotation_z(this.value)">
-		
-                <p>X_scale</p>
-                <input id="x_scale" type="range" min="0" max="100" value="0" oninput="x_change_scale(this.value)">
-                <p>Y_scale</p>
-                <input id="y_scale" type="range" min="0" max="100" value="0" oninput="y_change_scale(this.value)">
-		<p>Z_scale</p>
-                <input id="z_scale" type="range" min="0" max="100" value="0" oninput="z_change_scale(this.value)"
-		<p>Field of view</p>
-                <input id="field_of_view" type="range" min="0" max="100" value="0" oninput="change_field(this.value)">
-		<p>Camera Angle</p>
-                <input id="Camera Angle" type="range" min="0" max="360" value="0" oninput="change_camera_angle(this.value)">
-            </div>
+            <canvas id="gl_canvas" height="1080" width ="1920 "></canvas>
+            <canvas id="D_canvas" height="1080" width ="1920 "></canvas>
         </div>
         <script src="webgl.js"></script>
             

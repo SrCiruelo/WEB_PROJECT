@@ -1,9 +1,17 @@
+html{ 
+    height: 100% ;
+    width: 100%;
+} 
 
+body{
+    height: 100% ;
+    width: 100%;
+    margin: 0;
+}
 
 #container{
-    display: flex;
-    flex-direction: row;
-    
+    height: 100% ;
+    width: 100%;
 }
 
 #slider {
@@ -15,4 +23,19 @@
 #slider > input{
 
 	width: 90%;
+}
+
+
+
+#gl_canvas{
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    z-index: -1;
+}
+
+#D_canvas{
+    position: absolute;
+    height: 100%;
+    width: 100%;
 }
