@@ -35,6 +35,11 @@ var interface_text = [
     "PortFolio",
     "Contact Me"
 ]
+var bar_coords = [
+    1,0,0,
+    0,1,0,
+    0,0,1
+]
 var field_of_view = 60;
 
 var m4 = {
@@ -356,20 +361,19 @@ var main = function(){
     var program = createProgram(gl,vertexShader,fragmentShader);
     
     var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+    var barycentricAttributeLocation = gl.getAttribLocation(program, "b_position");
     var resolutionUniformLocation = gl.getUniformLocation(program,"u_resolution");
     var colorUniformLocation = gl.getUniformLocation(program,"main_color");
     var matrixUniformLocation = gl.getUniformLocation(program,"u_matrix");
+    
     var positionBuffer = gl.createBuffer();
-    //WebGl let us manipulate webGL resources on global bind points
-    //First we bind a resource to a bind point
+    var barycentricBuffer = gl.createBuffer();
+    
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    //Now we can enter data refering to the bind point
-    //we refer to our bind point, create a compatible binary array by copy that webgl can work with
-    //gl.STATIC_DRAW says we are not going to change the data much("STATIC")
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(), gl.STATIC_DRAW);
-    //We need set to the Display size our size in the html
-    //webgl-utils.resizeCanvasToDisplaySize(gl.canvas);
-    //This tells WebGl the -1 to +1 clip space maps to 0 gl.canvas.width and height
+    
+    gl.bindBuffer(gl.ARRAY_BUFFER, barycentricBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bar_coords), gl.STATIC_DRAW);
 
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.FRONT);
@@ -387,9 +391,7 @@ var main = function(){
         gl.useProgram(program);
         //Enable positionAttributeLocation "a_position"
         gl.enableVertexAttribArray(positionAttributeLocation);
-        //Bind the buffer again after enabled a_poistion
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(), gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(barycentricAttributeLocation);
         //Tell the attribute how to get data out of the PositioBuffer
         var size = 3;          // 3 components per iteration
         var type = gl.FLOAT;   // the data is 32bit floats
@@ -442,6 +444,9 @@ var main = function(){
             gl.uniform2f(resolutionUniformLocation,gl.canvas.width,gl.canvas.height);
             gl.uniform4f(colorUniformLocation,x,x,x,1);
             gl.uniformMatrix4fv(matrixUniformLocation, false, matrix);
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, barycentricBuffer);
+            gl.vertexAttribPointer(barycentricAttributeLocation, size, type, normalize, stride, offset);
 
             gl.drawArrays(primitiveType, offset, count);
         }
@@ -462,7 +467,7 @@ var main = function(){
             tmp_coords[i*2] = tmp[0]/tmp[3];
             tmp_coords[i*2+1] = tmp[1]/tmp[3];
         }
-        console.log(z_index);
+
         for(var i=0;i<z_index.length;++i){
             clip_coords[i*2+0] = tmp_coords[z_index[i]*2+0];
             clip_coords[i*2+1] = tmp_coords[z_index[i]*2+1];
@@ -478,13 +483,15 @@ var box_height = 35;
 var box_width = 400;
 var outer_pointer_size = 15;
 var inner_pointer_size = 7;
-
+var points_coords = [];
 
 var draw_interface = function(points_coords,z_index){
     ctx_2d.clearRect(0, 0, 1920,1080);
     ctx_2d.fillStyle = "#FFFFFF";
     var direction = [0.707,0.707];
     //ctx.font = "30px Arial";
+    var height = canvas0.clientHeight;
+    var width = canvas0.clientWidth;
     for(var i=0;i<points_coords.length/2;++i){
         //ctx_2d.fillRect((points_coords[i*2]+1)/2*canvas0.width,(1 - points_coords[i*2+1])/2*canvas0.height,50,50);
         ctx_2d.fillStyle = "#FFFFFF";
@@ -492,6 +499,10 @@ var draw_interface = function(points_coords,z_index){
         ctx_2d.lineWidth = "3";
         ctx_2d.strokeStyle = "black"; // Green path
         var clippped_coords = [(points_coords[i*2]+1)/2*canvas0.width,(1 - points_coords[i*2+1])/2*canvas0.height];
+        
+        this.points_coords[i*2] = (points_coords[i*2]+1)/2*width +  direction[0]*line_magnitude * width/canvas0.width ;
+        this.points_coords[i*2+1] = (1 - points_coords[i*2+1])/2*height - height * direction[1]*line_magnitude/canvas0.height;
+        
         ctx_2d.moveTo( clippped_coords[0], clippped_coords[1]);
         ctx_2d.lineTo(clippped_coords[0]+direction[0]*line_magnitude, clippped_coords[1]-direction[1]*0.866*line_magnitude);
         ctx_2d.lineTo(clippped_coords[0]+direction[0]*line_magnitude + box_width, clippped_coords[1]-direction[1]*0.866*line_magnitude);
@@ -509,7 +520,6 @@ var draw_interface = function(points_coords,z_index){
         
         ctx_2d.lineWidth = "0";
         ctx_2d.stroke();
-        ctx_2d.fill();
         
         ctx_2d.fillStyle = "#000000";
         
@@ -531,12 +541,36 @@ var draw_interface = function(points_coords,z_index){
     }
 }
 
+var check_collisions= function(box_coords,real_width,real_height,click_point){
+
+    var height = canvas0.clientHeight;
+    var width = canvas0.clientWidth;
+
+    
+    var i=0;
+    for(;i<box_coords.length/2 && 
+        (click_point[0]<box_coords[i*2] || click_point[0]>(box_coords[i*2]+real_width) ||
+        click_point[1]>box_coords[i*2+1] || click_point[1]<box_coords[i*2+1] - real_height) 
+        ;++i){
+        console.log("x : " + box_coords[i*2] + "  " + click_point[0]);
+        console.log("y : " + box_coords[i*2+1] + "  " + click_point[1]);
+    }
+    return i<box_coords.length;
+}
+
+
 var clicking = false;
 var initial_click = [];
 var angle_magnitude = 0;
 var initial_angle = 0;
 var mouse_over_canvas = function(e){
+    var hit_pos = [e.clientX,e.clientY];
+    if(check_collisions(points_coords,box_width * canvas0.clientWidth/canvas0.width,box_height* canvas0.clientHeight/canvas0.height,hit_pos)){
+        console.log("hitted");
+    }
+    
     if(!clicking)return;
+    
     var magnitude = initial_click[0] - e.clientX;
     angle_magnitude = magnitude/canvas0.width * Math.PI * 2;
     angles[2] = initial_angle + angle_magnitude;
