@@ -489,9 +489,7 @@ var draw_interface = function(points_coords,z_index){
     ctx_2d.clearRect(0, 0, 1920,1080);
     ctx_2d.fillStyle = "#FFFFFF";
     var direction = [0.707,0.707];
-    //ctx.font = "30px Arial";
-    var height = canvas0.clientHeight;
-    var width = canvas0.clientWidth;
+    
     for(var i=0;i<points_coords.length/2;++i){
         //ctx_2d.fillRect((points_coords[i*2]+1)/2*canvas0.width,(1 - points_coords[i*2+1])/2*canvas0.height,50,50);
         ctx_2d.fillStyle = "#FFFFFF";
@@ -500,8 +498,8 @@ var draw_interface = function(points_coords,z_index){
         ctx_2d.strokeStyle = "black"; // Green path
         var clippped_coords = [(points_coords[i*2]+1)/2*canvas0.width,(1 - points_coords[i*2+1])/2*canvas0.height];
         
-        this.points_coords[i*2] = (points_coords[i*2]+1)/2*width +  direction[0]*line_magnitude * width/canvas0.width ;
-        this.points_coords[i*2+1] = (1 - points_coords[i*2+1])/2*height - height * direction[1]*line_magnitude/canvas0.height;
+        this.points_coords[i*2] = clippped_coords[0]+direction[0]*line_magnitude - direction[0]*box_height - 4;
+        this.points_coords[i*2+1] = clippped_coords[1]-direction[1]*0.866*line_magnitude + direction[1]*box_height;
         
         ctx_2d.moveTo( clippped_coords[0], clippped_coords[1]);
         ctx_2d.lineTo(clippped_coords[0]+direction[0]*line_magnitude, clippped_coords[1]-direction[1]*0.866*line_magnitude);
@@ -543,19 +541,17 @@ var draw_interface = function(points_coords,z_index){
 
 var check_collisions= function(box_coords,real_width,real_height,click_point){
 
-    var height = canvas0.clientHeight;
-    var width = canvas0.clientWidth;
-
+    console.log("x : " + box_coords[0] + "  " + click_point[0]);
+    console.log("y : " + box_coords[1] + "  " + click_point[1]);
     
     var i=0;
     for(;i<box_coords.length/2 && 
         (click_point[0]<box_coords[i*2] || click_point[0]>(box_coords[i*2]+real_width) ||
         click_point[1]>box_coords[i*2+1] || click_point[1]<box_coords[i*2+1] - real_height) 
         ;++i){
-        console.log("x : " + box_coords[i*2] + "  " + click_point[0]);
-        console.log("y : " + box_coords[i*2+1] + "  " + click_point[1]);
+
     }
-    return i<box_coords.length;
+    return i<box_coords.length/2;
 }
 
 
@@ -563,9 +559,13 @@ var clicking = false;
 var initial_click = [];
 var angle_magnitude = 0;
 var initial_angle = 0;
+
 var mouse_over_canvas = function(e){
-    var hit_pos = [e.clientX,e.clientY];
-    if(check_collisions(points_coords,box_width * canvas0.clientWidth/canvas0.width,box_height* canvas0.clientHeight/canvas0.height,hit_pos)){
+    var height = canvas0.clientHeight;
+    var width = canvas0.clientWidth;
+    
+    var hit_pos = [e.clientX*canvas0.width/canvas0.clientWidth ,e.clientY*canvas0.height/canvas0.clientHeight];
+    if(check_collisions(points_coords,box_width ,box_height,hit_pos)){
         console.log("hitted");
     }
     
