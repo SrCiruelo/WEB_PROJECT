@@ -35,6 +35,12 @@ var interface_text = [
     "PortFolio",
     "Contact Me"
 ]
+var interface_description = [
+    "Hello, I'm Miguel I'm a videogame developer",
+    "Videogame Development student and programmer mainly of computational graphics",
+    "Here there it is a collection of all the videogames and code I've made",
+    "I have GitHub, Email and Twitter"
+]
 var bar_coords = [
     1,0,0,
     0,1,0,
@@ -376,12 +382,13 @@ var main = function(){
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bar_coords), gl.STATIC_DRAW);
 
     gl.enable(gl.CULL_FACE);
+    gl.enable(gl.DEPTH_TEST);
     gl.cullFace(gl.FRONT);
     
     draw_scene = function(){
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        gl.enable(gl.DEPTH_TEST);
+ 
 	
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
         // Clear the canvas
@@ -476,27 +483,43 @@ var main = function(){
         draw_interface(clip_coords,z_index);
     }
     draw_scene();
+    setInterval(Update,20);
 }
 
 var line_magnitude=400;
 var box_height = 35;
+var dialogue_box_height = 100;
 var box_width = 400;
+var dialogue_box_width = 500;
+
 var outer_pointer_size = 15;
 var inner_pointer_size = 7;
 var points_coords = [];
 
+var colliding_box = [-1,0];
+
+var transition_vel = 0.15;
+
 var draw_interface = function(points_coords,z_index){
     ctx_2d.clearRect(0, 0, 1920,1080);
-    ctx_2d.fillStyle = "#FFFFFF";
+
     var direction = [0.707,0.707];
+    var clipped_coords = [];
     
+   
+    
+    ctx_2d.fillStyle = "#FFFFFF";
     for(var i=0;i<points_coords.length/2;++i){
         //ctx_2d.fillRect((points_coords[i*2]+1)/2*canvas0.width,(1 - points_coords[i*2+1])/2*canvas0.height,50,50);
+        
+        //direction[0] = -direction[0]; THIS IS NOT WORKING AS THE ARE MORE THAT NEED TO GET CHANGED
+        //And it always needs to have the same direction for the same word
+        
         ctx_2d.fillStyle = "#FFFFFF";
         ctx_2d.beginPath(); 
         ctx_2d.lineWidth = "3";
         ctx_2d.strokeStyle = "black"; // Green path
-        var clippped_coords = [(points_coords[i*2]+1)/2*canvas0.width,(1 - points_coords[i*2+1])/2*canvas0.height];
+        clippped_coords = [(points_coords[i*2]+1)/2*canvas0.width,(1 - points_coords[i*2+1])/2*canvas0.height];
         
         this.points_coords[i*2] = clippped_coords[0]+direction[0]*line_magnitude - direction[0]*box_height - 4;
         this.points_coords[i*2+1] = clippped_coords[1]-direction[1]*0.866*line_magnitude + direction[1]*box_height;
@@ -537,13 +560,29 @@ var draw_interface = function(points_coords,z_index){
         var text_point = [clippped_coords[0]+direction[0]*line_magnitude - direction[0]*box_height + 25, clippped_coords[1]-direction[1]*0.866*line_magnitude + direction[1]*box_height]
         ctx_2d.fillText(interface_text[z_index[i]], text_point[0], text_point[1]);
     }
+    
+     if(colliding_box[0] != -1){
+         
+         ctx_2d.fillStyle = "#FFFFFF";
+
+        
+        clipped_coords[0] = (points_coords[colliding_box[0]*2]+1)/2*canvas0.width +direction[0]*line_magnitude - direction[0]*box_height - 4;
+        
+        clipped_coords[1] = (1 - points_coords[colliding_box[0]*2+1])/2*canvas0.height
+            -direction[1]*0.866*line_magnitude + direction[1]*box_height;
+        
+        console.log(clipped_coords);
+        
+        ctx_2d.fillRect(clipped_coords[0],clipped_coords[1],dialogue_box_width,dialogue_box_height*
+                        colliding_box[1]);
+        
+        colliding_box[1] += (colliding_box[1] <= 1)?transition_vel:0;
+        console.log(colliding_box[1]);
+    }
 }
 
 var check_collisions= function(box_coords,real_width,real_height,click_point){
 
-    console.log("x : " + box_coords[0] + "  " + click_point[0]);
-    console.log("y : " + box_coords[1] + "  " + click_point[1]);
-    
     var i=0;
     for(;i<box_coords.length/2 && 
         (click_point[0]<box_coords[i*2] || click_point[0]>(box_coords[i*2]+real_width) ||
@@ -551,7 +590,15 @@ var check_collisions= function(box_coords,real_width,real_height,click_point){
         ;++i){
 
     }
-    return i<box_coords.length/2;
+    if(i<box_coords.length/2){
+        colliding_box[0] = i;
+        colliding_box[1] = 0;
+        return true;
+    }
+    else{
+        colliding_box[0] = -1;
+        return false;
+    }
 }
 
 
@@ -561,13 +608,12 @@ var angle_magnitude = 0;
 var initial_angle = 0;
 
 var mouse_over_canvas = function(e){
-    var height = canvas0.clientHeight;
-    var width = canvas0.clientWidth;
+
     
     var hit_pos = [e.clientX*canvas0.width/canvas0.clientWidth ,e.clientY*canvas0.height/canvas0.clientHeight];
-    if(check_collisions(points_coords,box_width ,box_height,hit_pos)){
-        console.log("hitted");
-    }
+    
+    if(check_collisions(points_coords,box_width ,box_height,hit_pos))
+        return;
     
     if(!clicking)return;
     
@@ -589,6 +635,15 @@ var release_click = function(e){
     console.log("release");
 }
 
+var rot_speed = 0.01;
+var Update = function(){
+    //#if mouse over something draw_scene()
+    //#else rotate
+    if(colliding_box[0]==-1 && !clicking){
+        angles[2] += rot_speed;
+    }
+    draw_scene();
+}
 var createShader = function(gl, type, source){
     //Create Shader of type (vertex || Fragment("IN MY CODE")) 
     var shader= gl.createShader(type); 
