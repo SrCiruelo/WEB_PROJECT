@@ -337,7 +337,8 @@ var change_camera_angle = function(x){
 var draw_scene;
 var canvas0;
 var ctx_2d;
-
+var default_camera_x_angle = 0.93;
+var camera_angle = default_camera_x_angle;
 
 var main = function(){
 
@@ -350,20 +351,20 @@ var main = function(){
     canvas1.addEventListener("mousemove",mouse_over_canvas);
     ctx_2d = canvas1.getContext("2d");
     
-    //get webgl
+
     var gl = canvas0.getContext("webgl") || canvas0.getContext("experimental-webgl"); 
     if(!gl){
         alert("Your browser or device is not compatible with webl");
     }
-    //Get the code in the main index which consist in a basic vertex shader
+
     var vertexShaderSource = document.getElementById("2d-vertex-shader").text; 
-    //Get the code in the main index which consist in a basic fragment shader
+
     var fragmentShaderSource = document.getElementById("2d-fragment-shader").text; 
-     //Create Vertex shader
+
     var vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-    //Create Fragment Shader
+
     var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
-    //Create Program unifying
+
     var program = createProgram(gl,vertexShader,fragmentShader);
     
     var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
@@ -414,8 +415,7 @@ var main = function(){
         var zNear = 1;
         var zFar = 2000;
         var projection_matrix = m4.perspective(deg_to_rad(field_of_view), aspect, zNear, zFar);
-        var cameraMatrix = m4.xRotation(0);
-        cameraMatrix = m4.xRotate(cameraMatrix,0.93);
+        var cameraMatrix = m4.xRotation(camera_angle);
         cameraMatrix = m4.translate(cameraMatrix, -90,-200,-0);
 
         var viewMatrix = m4.inverse(cameraMatrix);
@@ -489,7 +489,7 @@ var main = function(){
 var line_magnitude=400;
 var box_height = 35;
 var dialogue_box_height = 100;
-var box_width = 400;
+var box_width = 350;
 var dialogue_box_width = 500;
 
 var outer_pointer_size = 15;
@@ -514,6 +514,7 @@ var draw_interface = function(points_coords,z_index){
         
         //direction[0] = -direction[0]; THIS IS NOT WORKING AS THE ARE MORE THAT NEED TO GET CHANGED
         //And it always needs to have the same direction for the same word
+        direction[0] = points_coords[i*2] * 1.7;
         
         ctx_2d.fillStyle = "#FFFFFF";
         ctx_2d.beginPath(); 
@@ -528,7 +529,7 @@ var draw_interface = function(points_coords,z_index){
         ctx_2d.lineTo(clippped_coords[0]+direction[0]*line_magnitude, clippped_coords[1]-direction[1]*0.866*line_magnitude);
         ctx_2d.lineTo(clippped_coords[0]+direction[0]*line_magnitude + box_width, clippped_coords[1]-direction[1]*0.866*line_magnitude);
         ctx_2d.lineTo(clippped_coords[0]+direction[0]*line_magnitude + box_width - direction[0]*box_height, clippped_coords[1]-direction[1]*0.866*line_magnitude + direction[1]*box_height);
-        ctx_2d.lineTo(clippped_coords[0]+direction[0]*line_magnitude - direction[0]*box_height - 4, clippped_coords[1]-direction[1]*0.866*line_magnitude + direction[1]*box_height);
+        ctx_2d.lineTo(clippped_coords[0]+direction[0]*line_magnitude - direction[0]*box_height , clippped_coords[1]-direction[1]*0.866*line_magnitude + direction[1]*box_height);
         ctx_2d.stroke(); // Draw it
         ctx_2d.fill();
         
@@ -635,12 +636,25 @@ var release_click = function(e){
     console.log("release");
 }
 
-var rot_speed = 0.01;
+var rot_speed = 0.008;
+var cam_trans_speed = 0.1;
 var Update = function(){
     //#if mouse over something draw_scene()
     //#else rotate
+    
+
+    //NEED TO IMPLEMENT LOOK AT
     if(colliding_box[0]==-1 && !clicking){
         angles[2] += rot_speed;
+        
+        if(camera_angle>default_camera_x_angle){
+            camera_angle = lerp(camera_angle,default_camera_x_angle,cam_trans_speed);
+        }
+    }
+    else if(camera_angle<=Math.PI && colliding_box[0]==-1 ){
+        //
+        camera_angle = lerp(camera_angle,Math.PI/2,cam_trans_speed);
+        console.log(camera_angle);
     }
     draw_scene();
 }
@@ -678,4 +692,8 @@ var createProgram = function(gl,vertexShader, fragmentShader){
     gl.deleteProgram(program);
 }
 main();
+    
+function lerp (start, end, amt){
+  return (1-amt)*start+amt*end
+}
 
