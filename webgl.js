@@ -1,4 +1,23 @@
 //webgl.js
+class dic{
+    constructor(){
+        this.n = 0;
+        this.key = [];
+    }
+    add_key(){
+        this.key[this.n] = [];
+        ++this.n;
+    }
+    add_val(index,val){
+        this.key[index].add(val);
+    }
+    insert_arr(index,val){
+        this.key[index] = val;
+    }
+    get_key(index){
+        return this.key[index];
+    }
+};
 var vertex_array =[
     0,0,0, //0
     0,0,100, //1
@@ -24,7 +43,7 @@ var triangles_array = [
     3,6,7
 ]
 var interface_points = [
-    20,10,100,
+    20,20,100,
     20,80,100,
     80,20,100,
     80,80,100
@@ -339,6 +358,7 @@ var canvas0;
 var ctx_2d;
 var default_camera_x_angle = 0.93;
 var camera_angle = default_camera_x_angle;
+var main_text_font = "";
 
 var main = function(){
 
@@ -482,6 +502,14 @@ var main = function(){
         }
         draw_interface(clip_coords,z_index);
     }
+    
+    divided_text = new dic();
+    for(var i = 0; i<interface_description.length;++i){
+        var tmp = [];
+        tmp = divide_text(interface_description[i]);
+        divided_text.add_key(i);
+        divided_text.insert_arr(i,tmp);
+    }
     draw_scene();
     setInterval(Update,20);
 }
@@ -491,6 +519,7 @@ var box_height = 35;
 var dialogue_box_height = 100;
 var box_width = 350;
 var dialogue_box_width = 500;
+var dialogue_box_margin = 10;
 
 var outer_pointer_size = 15;
 var inner_pointer_size = 7;
@@ -499,6 +528,12 @@ var points_coords = [];
 var colliding_box = [-1,0];
 
 var transition_vel = 0.15;
+
+var divided_text;
+var main_text_font = "small-caps 33px Consolas";
+var font_size = 18;
+var description_text_font = "normal "+font_size+"px Consolas";
+
 
 var draw_interface = function(points_coords,z_index){
     ctx_2d.clearRect(0, 0, 1920,1080);
@@ -557,49 +592,80 @@ var draw_interface = function(points_coords,z_index){
         //ctx_2d.fill();
         
 
-        ctx_2d.font = "small-caps 33px Consolas";
+        ctx_2d.font = main_text_font;
         var text_point = [clippped_coords[0]+direction[0]*line_magnitude - direction[0]*box_height + 25, clippped_coords[1]-direction[1]*0.866*line_magnitude + direction[1]*box_height]
         ctx_2d.fillText(interface_text[z_index[i]], text_point[0], text_point[1]);
     }
     
-     if(colliding_box[0] != -1){
+    var col_index = colliding_box[0];
+     if(col_index != -1){
          
-         ctx_2d.fillStyle = "#FFFFFF";
+         ctx_2d.fillStyle = "#9E9E9E";
+         
+         ctx_2d.font = description_text_font;
+        
+        clipped_coords[0] = (points_coords[col_index*2]+1)/2*canvas0.width +points_coords[col_index*2]*1.7*line_magnitude - points_coords[col_index*2]*1.7*box_height;
+        
+        clipped_coords[1] = (1 - points_coords[col_index*2+1])/2*canvas0.height
+            -direction[1]*0.866*line_magnitude + direction[1]*box_height +2;
+        
 
         
-        clipped_coords[0] = (points_coords[colliding_box[0]*2]+1)/2*canvas0.width +direction[0]*line_magnitude - direction[0]*box_height - 4;
-        
-        clipped_coords[1] = (1 - points_coords[colliding_box[0]*2+1])/2*canvas0.height
-            -direction[1]*0.866*line_magnitude + direction[1]*box_height;
-        
-        console.log(clipped_coords);
-        
-        ctx_2d.fillRect(clipped_coords[0],clipped_coords[1],dialogue_box_width,dialogue_box_height*
-                        colliding_box[1]);
+        ctx_2d.fillRect(clipped_coords[0],clipped_coords[1],dialogue_box_width,
+                        dialogue_box_height*colliding_box[1]);
+         //This needs to get changed is the font size is changed
+         var text_height = font_size + 2;
+         var sliced_text = divided_text.get_key(z_index[col_index]);
+         
+         ctx_2d.fillStyle = "#000000";
+         for(var i=0;i<sliced_text.length;++i,text_height+=font_size){
+             ctx_2d.fillText(sliced_text[i],clipped_coords[0]+dialogue_box_margin
+                             ,clipped_coords[1] + text_height);
+         }
         
         colliding_box[1] += (colliding_box[1] <= 1)?transition_vel:0;
-        console.log(colliding_box[1]);
     }
 }
 
-var check_collisions= function(box_coords,real_width,real_height,click_point){
+var divide_text = function(my_text){
+    ctx_2d.font = description_text_font;
+    var t_total = 0;
+    var tmp = [];
+    var slice_i = 0;
+    for(var i=0; i<my_text.length;++i){
+        t_total += ctx_2d.measureText(my_text.charAt(i)).width;
+        if(t_total>dialogue_box_width - dialogue_box_margin*2){
+            for(; i>0 && my_text.charAt(i)!=' ';--i){
+                
+            }
+            tmp.push(my_text.slice(slice_i,i));
+            t_total = 0;
+            slice_i = ++i;
+        }
+    }
+    tmp.push(my_text.slice(slice_i,my_text.length));
+    return tmp;
+}
+
+var check_collisions= function(box_coords,real_width,real_height,click_point,diag_height){
 
     var i=0;
     for(;i<box_coords.length/2 && 
         (click_point[0]<box_coords[i*2] || click_point[0]>(box_coords[i*2]+real_width) ||
-        click_point[1]>box_coords[i*2+1] || click_point[1]<box_coords[i*2+1] - real_height) 
+        click_point[1]  >box_coords[i*2+1]+ diag_height || 
+         click_point[1]<box_coords[i*2+1] - real_height) 
         ;++i){
-
     }
-    if(i<box_coords.length/2){
+    var hitted = i<box_coords.length/2;
+
+    if(hitted && colliding_box[0]!=i){
         colliding_box[0] = i;
         colliding_box[1] = 0;
-        return true;
     }
-    else{
+    else if(!hitted){
         colliding_box[0] = -1;
-        return false;
     }
+    return hitted;
 }
 
 
@@ -607,14 +673,13 @@ var clicking = false;
 var initial_click = [];
 var angle_magnitude = 0;
 var initial_angle = 0;
-
+var hit_pos = [];
 var mouse_over_canvas = function(e){
 
     
-    var hit_pos = [e.clientX*canvas0.width/canvas0.clientWidth ,e.clientY*canvas0.height/canvas0.clientHeight];
+    hit_pos = [e.clientX*canvas0.width/canvas0.clientWidth ,e.clientY*canvas0.height/canvas0.clientHeight];
     
-    if(check_collisions(points_coords,box_width ,box_height,hit_pos))
-        return;
+    
     
     if(!clicking)return;
     
@@ -641,20 +706,29 @@ var cam_trans_speed = 0.1;
 var Update = function(){
     //#if mouse over something draw_scene()
     //#else rotate
+    var e = window.event;
+    var is_on_box = colliding_box[0]!=-1
     
-
+    
+    //returning true and false
+    
+    
     //NEED TO IMPLEMENT LOOK AT
-    if(colliding_box[0]==-1 && !clicking){
-        angles[2] += rot_speed;
-        
-        if(camera_angle>default_camera_x_angle){
-            camera_angle = lerp(camera_angle,default_camera_x_angle,cam_trans_speed);
-        }
+    if(is_on_box){
+        check_collisions(points_coords,dialogue_box_width ,box_height,hit_pos,dialogue_box_height);
     }
-    else if(camera_angle<=Math.PI && colliding_box[0]==-1 ){
-        //
-        camera_angle = lerp(camera_angle,Math.PI/2,cam_trans_speed);
-        console.log(camera_angle);
+    else{
+        check_collisions(points_coords,box_width ,box_height,hit_pos,0);
+        if(!clicking){
+            angles[2] += rot_speed;
+        
+            if(camera_angle>default_camera_x_angle){
+                camera_angle = lerp(camera_angle,default_camera_x_angle,cam_trans_speed);
+            }
+        }
+        else if(camera_angle<=Math.PI){
+            camera_angle = lerp(camera_angle,Math.PI/2,cam_trans_speed);
+        }
     }
     draw_scene();
 }
@@ -696,4 +770,7 @@ main();
 function lerp (start, end, amt){
   return (1-amt)*start+amt*end
 }
+
+
+
 
