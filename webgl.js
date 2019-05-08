@@ -1,5 +1,12 @@
 "use strict";
 //CLASSES
+var transform_camera =[
+    -90,-200,0
+];
+var camera_y_axis = [
+    0,1,0
+];
+var camera_target = [50,50,100];
 class dic{
     constructor(){
         this.n = 0;
@@ -57,8 +64,41 @@ var interface_points = [
     80,20,100,
     80,80,100
 ]
-var m4 = {
+function normalize(v) {
+      var length = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+      // make sure we don't divide by 0.
+      if (length > 0.00001) {
+        return [v[0] / length, v[1] / length, v[2] / length];
+      } else {
+        return [0, 0, 0];
+      }
+ }
+function cross(a, b) {
+      return [a[1] * b[2] - a[2] * b[1],
+              a[2] * b[0] - a[0] * b[2],
+              a[0] * b[1] - a[1] * b[0]];
+}
+function subtractVectors(a, b) {
+      return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+}
 
+var m4 = {
+ lookAt: function(cameraPosition, target, up) {
+    var zAxis = normalize(
+        subtractVectors(cameraPosition, target));
+    var xAxis = normalize(cross(up, zAxis));
+    var yAxis = normalize(cross(zAxis, xAxis));
+ 
+    return [
+       xAxis[0], xAxis[1], xAxis[2], 0,
+       yAxis[0], yAxis[1], yAxis[2], 0,
+       zAxis[0], zAxis[1], zAxis[2], 0,
+       cameraPosition[0],
+       cameraPosition[1],
+       cameraPosition[2],
+       1,
+    ];
+ },
  perspective: function(fieldOfViewInRadians, aspect, near, far) {
     var f = Math.tan(Math.PI * 0.5 - 0.5 * fieldOfViewInRadians);
     var rangeInv = 1.0 / (near - far);
@@ -560,7 +600,8 @@ var Update = function(){
     
     
     //returning true and false
-    
+    //transform_camera[2] += -1;
+   // console.log(transform_camera[2]);
     
     //NEED TO IMPLEMENT LOOK AT
     if(is_on_box){
@@ -708,8 +749,21 @@ var main = function(){
         var zNear = 1;
         var zFar = 2000;
         var projection_matrix = m4.perspective(deg_to_rad(field_of_view), aspect, zNear, zFar);
-        var cameraMatrix = m4.xRotation(camera_angle);
-        cameraMatrix = m4.translate(cameraMatrix, -90,-200,-0);
+
+	
+	//var cameraMatrix = m4.translation(transform_camera[0],transform_camera[1],transform_camera[2]);
+
+	var cameraMatrix = m4.xRotation(0.93);
+	cameraMatrix = m4.translate(cameraMatrix, transform_camera[0],transform_camera[1],transform_camera[2]);
+	var cameraPosition = [
+	    cameraMatrix[12],
+	    cameraMatrix[13],
+	    cameraMatrix[14],
+	];
+	//cameraMatrix =  m4.lookAt( cameraPosition,camera_target,camera_y_axis);
+        //var cameraMatrix = m4.lookAt( transform_camera,camera_target,camera_y_axis);
+
+        //cameraMatrix = m4.translate(cameraMatrix ,transform_camera[0], transform_camera[1], transform_camera[2]);
 
         var viewMatrix = m4.inverse(cameraMatrix);
 
