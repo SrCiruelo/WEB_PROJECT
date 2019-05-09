@@ -1,12 +1,5 @@
 "use strict";
 //CLASSES
-var transform_camera =[
-    -90,-200,0
-];
-var camera_y_axis = [
-    0,1,0
-];
-var camera_target = [50,50,100];
 class dic{
     constructor(){
         this.n = 0;
@@ -337,6 +330,14 @@ var rad_cam_angle = 0;
 var field_of_view = 60;
 var default_camera_x_angle = 0.93;
 var camera_angle = default_camera_x_angle;
+
+var transform_camera =[
+    -90,-200,40
+];
+var camera_y_axis = [
+    0,0.54,0.81
+];
+var camera_target = [50+trans[0],50+trans[1],100+trans[2]];
 
 //GEOMETRY FUNCTIONS
 var change_rotation_x = function(x){
@@ -750,21 +751,17 @@ var main = function(){
         var zFar = 2000;
         var projection_matrix = m4.perspective(deg_to_rad(field_of_view), aspect, zNear, zFar);
 
-	
-	//var cameraMatrix = m4.translation(transform_camera[0],transform_camera[1],transform_camera[2]);
-
 	var cameraMatrix = m4.xRotation(0.93);
 	cameraMatrix = m4.translate(cameraMatrix, transform_camera[0],transform_camera[1],transform_camera[2]);
+	
 	var cameraPosition = [
 	    cameraMatrix[12],
 	    cameraMatrix[13],
 	    cameraMatrix[14],
 	];
-	//cameraMatrix =  m4.lookAt( cameraPosition,camera_target,camera_y_axis);
-        //var cameraMatrix = m4.lookAt( transform_camera,camera_target,camera_y_axis);
-
-        //cameraMatrix = m4.translate(cameraMatrix ,transform_camera[0], transform_camera[1], transform_camera[2]);
-
+	
+	cameraMatrix =  m4.lookAt( cameraPosition,camera_target,camera_y_axis);
+ 
         var viewMatrix = m4.inverse(cameraMatrix);
 
         var matrix = m4.multiply(projection_matrix, viewMatrix); //viewProjectionMatrix
