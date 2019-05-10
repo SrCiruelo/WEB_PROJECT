@@ -335,7 +335,7 @@ var default_camera_x_angle = 0.93;
 var camera_angle = default_camera_x_angle;
 
 var camera_offset = [
-    -40,-120,40
+    -40,-40,40
 ];
 var default_transform_camera =[
     -90 - camera_offset[0],-200 - camera_offset[1],40 - camera_offset[2]
@@ -351,56 +351,10 @@ var camera_y_axis = [
     default_camera_y_axis[0] ,default_camera_y_axis[1],
     default_camera_y_axis[2]
 ];
-var default_camera_target = [20,20,100,1];
+var default_camera_target = [50,50,100,1];
 var camera_target = [ default_camera_target[0],
 default_camera_target[0],default_camera_target[2],1];
 
-
-//GEOMETRY FUNCTIONS
-var change_rotation_x = function(x){
-    angles[0] = x/50 * Math.PI;
-    draw_scene();
-}
-var change_rotation_y = function(x){
-    angles[1] = x/50 * Math.PI;
-    draw_scene();
-}
-var change_rotation_z = function(x){
-    angles[2] = x/50 * Math.PI;
-    draw_scene();
-}
-var x_change_pos = function(x){
-    trans[0] = x*2 -150;
-    draw_scene();
-}
-var y_change_pos = function(y){
-    trans[1] = -y*2;
-    draw_scene();
-}
-var z_change_pos = function(y){
-    trans[2] = -y-360;
-    draw_scene();
-}
-var x_change_scale = function(x){
-    scale[0] = x/20;
-    draw_scene();
-}
-var y_change_scale = function(y){
-    scale[1] = y/20;
-    draw_scene();
-}
-var z_change_scale = function(y){
-    scale[2] = y/20;
-    draw_scene();
-}
-var change_field = function(y){
-    field_of_view = y*180/100;
-    draw_scene();
-}
-var change_camera_angle = function(x){
-    rad_cam_angle = deg_to_rad(x);
-    draw_scene();
-}
 //CHANGE TO BARYCENTRIC
 var baricentric_coords = [
     1,0,0,
@@ -445,6 +399,7 @@ var hit_pos = [];
 //3D transitions variables
 var rot_speed = 0.008;
 var cam_trans_speed = 0.1;
+var positions_to_index = []
 //CONTEXT VARIABLES
 var draw_scene;
 var canvas0;
@@ -452,29 +407,31 @@ var ctx_2d;
 //EVENTS
 var mouse_over_canvas = function(e){
 
-
+    if(doing_transition)return;
     hit_pos = [e.clientX*canvas0.width/canvas0.clientWidth ,e.clientY*canvas0.height/canvas0.clientHeight];
 
 
 
     if(!clicking)return;
 
-    var magnitude = initial_click[0] - e.clientX;
+    var magnitude = initial_click[0] - hit_pos[0];
     angle_magnitude = magnitude/canvas0.width * Math.PI * 2;
     angles[2] = initial_angle + angle_magnitude;
-    draw_scene();
 }
 var click_on_canvas = function(e){
+    if(doing_transition)return;
     clicking = true;
+    initial_click = [e.clientX*canvas0.width/canvas0.clientWidth ,e.clientY*canvas0.height/canvas0.clientHeight];
+    if(check_all_collisions(initial_click)){
+        transition_index = positions_to_index[colliding_box[0]];
+        colliding_box[0]= -1;
+        doing_transition=true;
+    }
     initial_angle = angles[2];
-    initial_click[0] = e.clientX;
-    initial_click[1] = e.clientY;
-    console.log("clicked");
 
 }
 var release_click = function(e){
      clicking=false;
-    console.log("release");
 }
 //CHECK_COLISIONS FUNCTION
 var check_collisions= function(box_coords,real_width,real_height,click_point,diag_height){
@@ -496,6 +453,31 @@ var check_collisions= function(box_coords,real_width,real_height,click_point,dia
         colliding_box[0] = -1;
     }
     return hitted;
+}
+
+var check_all_collisions = function(){
+    
+    var is_on_box = colliding_box[0]!=-1;
+
+    if(is_on_box){
+        check_collisions(points_coords,dialogue_box_width ,box_height,hit_pos,dialogue_box_height);
+        return true;
+    }
+    else{
+        var collided = check_collisions(points_coords,box_width ,box_height,hit_pos,0);
+        return collided;
+    }
+}
+//No overload functions allowed in javascript 
+var check_click_collision = function(click_pos){
+    var is_on_box = colliding_box[0]!=-1;
+    if(is_on_box){
+        return true;
+    }
+    else{
+        var collided = check_collisions(points_coords,box_width ,box_height,click_pos,0);
+        return collided;
+    }
 }
 //DIVIDE TEXT FUNCTION
 var divide_text = function(my_text){
@@ -519,12 +501,16 @@ var divide_text = function(my_text){
 }
 //DRAW_INTERFACE
 var draw_interface = function(points_coords,z_index){
+    positions_to_index = z_index;
     ctx_2d.clearRect(0, 0, 1920,1080);
 
     var direction = [0.707,0.707];
     var clipped_coords = [0,0];
 
     ctx_2d.fillStyle = "#FFFFFF";
+    if(doing_transition){
+        line_magnitude = line_magnitude*(1-t) + t*800;
+    }
     for(var i=0;i<points_coords.length/2;++i){
         //ctx_2d.fillRect((points_coords[i*2]+1)/2*canvas0.width,(1 - points_coords[i*2+1])/2*canvas0.height,50,50);
 
@@ -609,27 +595,41 @@ var draw_interface = function(points_coords,z_index){
         colliding_box[1] += (colliding_box[1] <= 1)?transition_vel:0;
     }
 }
+//HAY QUE RECOLOCAR ESTAS VARIABLES
+var doing_transition = false;
 var t = 0;
-var index = 0;
+var speed = 2;
+var transition_index = 0;
 var camera_transition = function(index,t){
-    var final_camera_y_axis = [0,1,0];
-    camera_y_axis = vectorLerp(default_camera_y_axis,final_camera_y_axis,t);
-    //transform_camera = vectorLerp(default_camera_target,interface)
+    
 }
+var change_state = function(index){
+    if (!doing_transition) return;
 
+    var pos_point = [interface_points[ transition_index*3+0],interface_points[ transition_index*3+1],
+      interface_points[ transition_index*3+2],1];
+    var pivot = [-100,50,-0];
+    var worldmatrix = m4.translation(pivot[0],pivot[1],pivot[2]);
+    worldmatrix = m4.zRotate(worldmatrix,angles[2]);
+    worldmatrix = m4.translate(worldmatrix,-pivot[0],-pivot[1],-pivot[2]);
+    worldmatrix = m4.translate(worldmatrix,trans[0],trans[1],trans[2]);
+    
+    default_camera_target = pos_point;
+    default_transform_camera = m4.multiply_vector(worldmatrix,pos_point);
+    transition_index = index;
+    t=0;
+}
 //UPDATE EVERY 20 miliseconds get executed
 var Update = function(){
     //#if mouse over something draw_scene()
     //#else rotate
-    var e = window.event;
-    var is_on_box = colliding_box[0]!=-1;
-
-    console.log(t);
-    if(t<=1)
-    {
-      t += 0.01;
-      camera_transition(2,t);
+    if(doing_transition){
+        t += (t<=1)?speed*speed/100:0;
+        draw_scene();
+        return true;
     }
+    var is_on_box = check_all_collisions();
+
     if(is_on_box){
         check_collisions(points_coords,dialogue_box_width ,box_height,hit_pos,dialogue_box_height);
     }
@@ -780,15 +780,13 @@ var main = function(){
         worldmatrix = m4.translate(worldmatrix,-pivot[0],-pivot[1],-pivot[2]);
         worldmatrix = m4.translate(worldmatrix,trans[0],trans[1],trans[2]);
 
-        var pos_point = [interface_points[index*3+0],interface_points[index*3+1],
-      interface_points[index*3+2],1];
+        var pos_point = [interface_points[ transition_index*3+0],interface_points[ transition_index*3+1],
+      interface_points[ transition_index*3+2],1];
 
-
-
+        console.log(pos_point);
         transform_camera = vectorLerp(default_transform_camera,
          m4.multiply_vector(worldmatrix,pos_point),t);
-
-               console.log(transform_camera);
+        
       	// var cameraMatrix = m4.xRotation(0.93);
       	// cameraMatrix = m4.translate(cameraMatrix, transform_camera[0]+
         //   camera_offset[0],transform_camera[1] + camera_offset[1],
@@ -796,24 +794,25 @@ var main = function(){
         var cameraMatrix = m4.translation( transform_camera[0]+
             camera_offset[0],transform_camera[1] + camera_offset[1],
             transform_camera[2]+camera_offset[2]);
-        cameraMatrix = m4.xRotate(cameraMatrix,0.93);
+        //cameraMatrix = m4.xRotate(cameraMatrix,0.93);
 
       	var cameraPosition = [
       	    cameraMatrix[12],
       	    cameraMatrix[13],
       	    cameraMatrix[14],
       	];
-
-        var transformed_camera_target = m4.multiply_vector(worldmatrix,camera_target);
-
+        
+        var transformed_camera_target = vectorLerp(
+            m4.multiply_vector(worldmatrix,default_camera_target),
+         m4.multiply_vector(worldmatrix,pos_point),t);
+        
+        
       	cameraMatrix =  m4.lookAt( cameraPosition,transformed_camera_target,camera_y_axis);
 
         var viewMatrix = m4.inverse(cameraMatrix);
 
         var matrix = m4.multiply(projection_matrix, viewMatrix); //viewProjectionMatrix
-
-
-
+        
         matrix = m4.multiply(matrix,worldmatrix);
 
 

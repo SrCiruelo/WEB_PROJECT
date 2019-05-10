@@ -8,7 +8,9 @@ body{
     width: 100%;
     margin: 0;
 }
-
+button{
+    z-index: 1;
+}
 #container{
     height: 100% ;
     width: 100%;
@@ -36,6 +38,7 @@ body{
 
 #D_canvas{
     position: absolute;
+    z-index: 0;
     height: 100%;
     width: 100%;
 }
