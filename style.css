@@ -1,41 +1,63 @@
-html{ 
+html{
     height: 100% ;
     width: 100%;
-} 
+}
 
 body{
     height: 100% ;
     width: 100%;
     margin: 0;
 }
-
-#container{
+#canvas_container{
     height: 100% ;
     width: 100%;
+    position: absolute;
 }
-
-#slider {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-}
-
-#slider > input{
-
-	width: 90%;
-}
-
-
-
 #gl_canvas{
     height: 100%;
     width: 100%;
-    position: absolute;
     z-index: -1;
+    position: absolute;
 }
 
 #D_canvas{
     position: absolute;
+    z-index: 0;
     height: 100%;
     width: 100%;
+}
+#html_container{
+  position: absolute;
+  z-index: 1;
+  height: 100%;
+  width: 100%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+#display{
+  height: 86%;
+  width: 70%;
+  background-color: white;
+  outline: 2px solid #000;
+  outline-offset: -2px;
+}
+#menu{
+  height: 86%;
+  width: 10%;
+}
+#menu *{
+  height: 10%;
+  width: 100%;
+  background-color: white;
+  outline: 2px solid #000;
+  outline-offset: -2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Consolas";
+  font-size: 20px;
+}
+#menu *:hover{
+  background-color: grey;
 }

@@ -20,18 +20,18 @@
               // all shaders have a main function
               void main() {
 	           vec4 position = (u_matrix * a_position);
-	      
-          
+
+
                 gl_Position = position;
-                
+
                 b_coords = b_position;
 
                 v_color = gl_Position * 0.5 + 0.5;
 
               }
- 
+
         </script>
- 
+
         <script id="2d-fragment-shader" type="notjs">
 
               // fragment shaders don't have a default precision so we need
@@ -41,26 +41,45 @@
               varying vec4 v_color;
               varying vec3 b_coords;
 
-              void main() 
+              void main()
               {
-                
+
                 if(b_coords.x<0.01 || b_coords.y<0.01 || b_coords.z<0.01 ){
-                    gl_FragColor = vec4(0,0,0,1); 
+                    gl_FragColor = vec4(0,0,0,1);
                 }
                 else{
-                    gl_FragColor = vec4(0.5,0.5,0.5,0); 
+                    gl_FragColor = vec4(0,0,0,0);
                 }
               }
 
         </script>
     </head>
-    
-    <body onresize="draw_scene()">
-        <div id="container">
+
+    <body onresize="draw_scene()" id="body">
+        <div id="canvas_container">
             <canvas id="gl_canvas" height="1080" width ="1920 "></canvas>
             <canvas id="D_canvas" height="1080" width ="1920 "></canvas>
         </div>
+         <div id="html_container">
+            <div id="display">
+
+            </div>
+            <nav id="menu">
+              <div id="WHOAMI" onclick="change_state(0)">
+                Who am I?
+              </div>
+              <div id="CV" onclick="change_state(1)">
+                CV
+              </div>
+              <div id="Portfolio" onclick="change_state(2)">
+                Portfolio
+              </div>
+              <div id="ContactMe" onclick="change_state(3)">
+                Contact Me
+              </div>
+            </nav>
+         </div>
         <script src="webgl.js"></script>
-            
+
     </body>
 </html>
