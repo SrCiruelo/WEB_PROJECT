@@ -601,12 +601,12 @@ var change_state = function(index){
 var is_displaying = false;
 var display_css = function(){
   if(is_displaying)return;
-  display_menu();
+  display_menu(interface_text[transition_index]);
   is_displaying = true;
 }
 var stop_display_css = function(){
   if(!is_displaying)return;
-  document.getElementById("html_container").style.display = "none";
+  hide_menu();
   is_displaying = false;
 }
 //UPDATE EVERY 20 miliseconds get executed
@@ -640,7 +640,7 @@ var Update = function(){
     }
     draw_scene();
 }
-//SHADERS DECLARARTIONS
+//SHADERS DECLARATIONS
 var createShader = function(gl, type, source){
     //Create Shader of type (vertex || Fragment("IN MY CODE"))
     var shader= gl.createShader(type);

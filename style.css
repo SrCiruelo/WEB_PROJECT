@@ -47,6 +47,7 @@ body{
   height: 86%;
   width: 10%;
 }
+
 #menu *{
   height: 10%;
   width: 100%;
@@ -60,6 +61,11 @@ body{
   font-family: "Consolas";
   font-size: 20px;
   left: 200%;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select:none;
+    user-select:none;
+    -o-user-select:none;
 }
 #menu *:hover{
   background-color: grey;
