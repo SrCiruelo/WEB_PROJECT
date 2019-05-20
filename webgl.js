@@ -352,6 +352,12 @@ var interface_text = [
     "PortFolio",
     "Contact Me"
 ]
+var html_id = [
+  "WhoamI",
+  "CV",
+  "PortFolio",
+    "ContactMe"
+];
 var interface_description = [
     "Hello, I'm Miguel I'm a videogame developer",
     "Videogame Development student and programmer mainly of computational graphics",
@@ -601,7 +607,7 @@ var change_state = function(index){
 var is_displaying = false;
 var display_css = function(){
   if(is_displaying)return;
-  display_menu(interface_text[transition_index]);
+  display_menu(html_id[transition_index]);
   is_displaying = true;
 }
 var stop_display_css = function(){

@@ -43,6 +43,9 @@ body{
   outline-offset: -2px;
   margin: 100% 0 0 0;
 }
+#display *{
+    display: none;
+}
 #menu{
   height: 86%;
   width: 10%;
