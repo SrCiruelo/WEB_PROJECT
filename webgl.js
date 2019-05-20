@@ -601,13 +601,11 @@ var change_state = function(index){
 var is_displaying = false;
 var display_css = function(){
   if(is_displaying)return;
-  console.log("Executing");
-  document.getElementById("html_container").style.display = "flex";
+  display_menu();
   is_displaying = true;
 }
 var stop_display_css = function(){
   if(!is_displaying)return;
-  console.log("Executing");
   document.getElementById("html_container").style.display = "none";
   is_displaying = false;
 }
